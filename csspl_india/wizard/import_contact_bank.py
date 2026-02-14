@@ -133,7 +133,7 @@ class ContactCust(models.TransientModel):
                     raise ValidationError(f"Account Payable Account Missing For Contact {row_data.get('name')}")
                 contact_import = {
                     'name': row_data.get('name') if not pd.isnull(row_data.get('name')) else '',
-                    'property_account_payable_id': account_payable if not pd.isnull(row_data.get('account_payable')) else '',
+                    'property_account_payable_id': account_payable.id if not pd.isnull(row_data.get('account_payable')) else '',
                     'street': row_data.get('street') if not pd.isnull(row_data.get('street')) else '',
                     'street2': row_data.get('street2') if not pd.isnull(row_data.get('street2')) else '',
                     'city': row_data.get('city') if not pd.isnull(row_data.get('city')) else '',
@@ -154,7 +154,7 @@ class ContactCust(models.TransientModel):
                     if not bank:
                         bank_create = self.env['res.bank'].create([{
                             'name': bank_names,
-                            'bic': ifsc,
+                            'bic': str(ifsc),
                         }]).id
                     else:
                         bank_create = bank

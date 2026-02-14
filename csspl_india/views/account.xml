@@ -77,7 +77,7 @@
 <!--    <record id="view_account_payment_form_inherit1" model="ir.ui.view">-->
 <!--        <field name="name">view.account.payment.form.inherit</field>-->
 <!--        <field name="model">account.payment</field>-->
-<!--        <field name="inherit_id" ref="po_accounting_v16.view_account_payment_form_reconcile"/>-->
+<!--        <field name="inherit_id" ref="csspl_india.view_account_payment_form_reconcile"/>-->
 <!--        <field name="arch" type="xml">-->
 <!--            <xpath expr="//field[@name='partial_lines']/.." position="after">-->
 <!--                <page name="extra_info" string="Other Info"-->
@@ -278,7 +278,7 @@
 
             <xpath expr="//header" position="inside">
                 <button name="send_for_checking" string="Send For Checking" type="object"
-                        groups="po_accounting_v16.group_payments_maker"
+                        groups="csspl_india.group_payments_maker"
                         invisible="to_check or is_checked or state != 'draft'"/>
                 <button name="management_approve" string="Management Approval" type="object" groups="base.group_system"
                         invisible="is_management_approved or state != 'approved'"/>
@@ -287,11 +287,11 @@
                 <button name="pending_transfer" string="Submit" type="object"
                         invisible="state not in ['bank_upload']"/>
                 <button name="button_set_checked" string="Approve" type="object"
-                        groups="po_accounting_v16.group_payments_checker"
+                        groups="csspl_india.group_payments_checker"
                         invisible="not to_check or is_checked"/>
                 <button name="reject" type="object" string="Reject"
                         invisible="state in ['sent','reconciled'] or state == 'reject'"
-                        groups="po_accounting_v16.group_payments_checker"/>
+                        groups="csspl_india.group_payments_checker"/>
                 <button name="resend_for_approval" type="object" string="Resend for Approval"
                         invisible="state != 'reject'"/>
             </xpath>
@@ -427,7 +427,7 @@
 <!--        <field name="name">Update Bank Reference</field>-->
 <!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
 <!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="groups_id" eval="[(4, ref('po_accounting_v16.group_payments_position_manager'))]"/>-->
+<!--        <field name="groups_id" eval="[(4, ref('csspl_india.group_payments_position_manager'))]"/>-->
 <!--        <field name="binding_view_types">list</field>-->
 <!--        <field name="state">code</field>-->
 <!--        <field name="code">action=records.update_bank_reference()</field>-->
@@ -437,7 +437,7 @@
 <!--        <field name="name">Bank Format Merge</field>-->
 <!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
 <!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="groups_id" eval="[(4, ref('po_accounting_v16.group_payments_position_manager'))]"/>-->
+<!--        <field name="groups_id" eval="[(4, ref('csspl_india.group_payments_position_manager'))]"/>-->
 <!--        <field name="binding_view_types">list</field>-->
 <!--        <field name="state">code</field>-->
 <!--        <field name="code">action=records.generate_excel_merge_report()</field>-->

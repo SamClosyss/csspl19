@@ -31,29 +31,29 @@
                        widget="many2many_tags"
                        domain="[('type_tax_use', '=', 'purchase')]"
                        options="{'no_create': True}"/>
-<!--                <field name="journal_relate_id" invisible="True"/>-->
+                <!--                <field name="journal_relate_id" invisible="True"/>-->
             </xpath>
-<!--            <field name="tax_ids"-->
-<!--                   widget="many2many_tags"-->
-<!--                   domain="[('journal_ids', '=', journal_relate_id), ('type_tax_use', '=', 'purchase')]"-->
-<!--                   options="{'no_create': True}"/>-->
-<!--            <field name="journal_relate_id" invisible="True"/>-->
+            <!--            <field name="tax_ids"-->
+            <!--                   widget="many2many_tags"-->
+            <!--                   domain="[('journal_ids', '=', journal_relate_id), ('type_tax_use', '=', 'purchase')]"-->
+            <!--                   options="{'no_create': True}"/>-->
+            <!--            <field name="journal_relate_id" invisible="True"/>-->
             <!-- After is_checked -->
-            <!--            <xpath expr="//field[@name='is_checked']" position="after">-->
-            <!--                <field name="analytic_distribution"-->
-            <!--                       readonly="state not in ('draft','sent')"/>-->
+            <xpath expr="//field[@name='picking_type_id']" position="after">
+                <field name="analytic_distribution"
+                       readonly="state not in ('draft','sent')"/>
 
-            <!--                <field name="gstin_id"-->
-            <!--                       domain="[('is_gstin', '=', True)]"-->
-            <!--                       readonly="state == 'purchase'"-->
-            <!--                       required="True"/>-->
+<!--                <field name="gstin_id"-->
+<!--                       domain="[('is_gstin', '=', True)]"-->
+<!--                       readonly="state == 'purchase'"-->
+<!--                       required="True"/>-->
 
-            <!--                <field name="l10n_in_journal_id"-->
-            <!--                       options="{'no_create': True}"-->
-            <!--                       domain="[('company_id', '=', company_id), ('type', '=', 'purchase')]"-->
-            <!--                       invisible="country_code != 'IN'"-->
-            <!--                       required="country_code == 'IN'"/>-->
-            <!--            </xpath>-->
+<!--                <field name="l10n_in_journal_id"-->
+<!--                       options="{'no_create': True}"-->
+<!--                       domain="[('company_id', '=', company_id), ('type', '=', 'purchase')]"-->
+<!--                       invisible="country_code != 'IN'"-->
+<!--                       required="country_code == 'IN'"/>-->
+            </xpath>
 
         </field>
     </record>
@@ -71,11 +71,11 @@
                 <field name="restrict_partner_ledger" invisible="True"/>
             </xpath>
 
-<!--            <xpath expr="//button[@id='partner_ledger_button']" position="attributes">-->
-<!--                <attribute name="invisible">-->
-<!--                    restrict_partner_ledger == True-->
-<!--                </attribute>-->
-<!--            </xpath>-->
+            <!--            <xpath expr="//button[@id='partner_ledger_button']" position="attributes">-->
+            <!--                <attribute name="invisible">-->
+            <!--                    restrict_partner_ledger == True-->
+            <!--                </attribute>-->
+            <!--            </xpath>-->
 
         </field>
     </record>

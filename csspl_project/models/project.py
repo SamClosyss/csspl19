@@ -152,13 +152,14 @@ class ProjectInherit(models.Model):
     def compute_amount_from_analytic_lines(self):
         for rec in self:
             rec.bill_amount, rec.invoice_amount, rec.payment_amount = 0, 0, 0
-            analytic_items = self.env['account.analytic.line'].sudo().search([('account_id', '=', rec.analytic_account_id.id)])
-            rec.bill_amount = sum(analytic_items.filtered(lambda x: x.category == 'vendor_bill').move_line_id.move_id.mapped('amount_total_signed'))
-            rec.invoice_amount = sum(analytic_items.filtered(lambda x: x.category == 'invoice').move_line_id.move_id.mapped('amount_total_signed'))
-            rec.payment_amount = sum(analytic_items.filtered(lambda x: x.general_account_id.account_type == 'liability_payable'
-                                                             and x.move_line_id.payment_id and x.move_line_id.parent_state == 'posted').move_line_id.mapped('debit')) \
-                                 - sum(analytic_items.filtered(lambda x: x.general_account_id.account_type == 'liability_payable'and
-                                                                         x.move_line_id.parent_state == 'posted' and x.move_line_id.payment_id).move_line_id.mapped('credit'))
+            if rec.account_id:
+                analytic_items = self.env['account.analytic.line'].sudo().search([('account_id', '=', rec.account_id.id)])
+                rec.bill_amount = sum(analytic_items.filtered(lambda x: x.category == 'vendor_bill').move_line_id.move_id.mapped('amount_total_signed'))
+                rec.invoice_amount = sum(analytic_items.filtered(lambda x: x.category == 'invoice').move_line_id.move_id.mapped('amount_total_signed'))
+                rec.payment_amount = sum(analytic_items.filtered(lambda x: x.general_account_id.account_type == 'liability_payable'
+                                                                 and x.move_line_id.payment_id and x.move_line_id.parent_state == 'posted').move_line_id.mapped('debit')) \
+                                     - sum(analytic_items.filtered(lambda x: x.general_account_id.account_type == 'liability_payable'and
+                                                                             x.move_line_id.parent_state == 'posted' and x.move_line_id.payment_id).move_line_id.mapped('credit'))
 
     # Total no of payments approval already made through
     def _compute_payment_approval_count(self):
@@ -214,7 +215,7 @@ class ProjectInherit(models.Model):
             'name': 'Transfers',
             'res_model': 'stock.picking',
             'type': 'ir.actions.act_window',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'context': {'create': 0, 'delete': 0},
             'domain': [('id', 'in', self.boq_line_ids.stock_move_ids.picking_id.ids)]
         }
@@ -225,20 +226,20 @@ class ProjectInherit(models.Model):
             'name': 'Purchase Lines',
             'res_model': 'purchase.order.line',
             'type': 'ir.actions.act_window',
-            'view_mode': 'tree',
+            'view_mode': 'list',
             'context': {'create': 0, 'delete': 0},
             'domain': [('id', 'in', self.boq_line_ids.purchase_line_id.ids)]
         }
 
     # This function is used to display all the Invoices related to the project
     def action_view_invoices(self):
-        analytic_lines = self.env['account.analytic.line'].sudo().search([('account_id', '=', self.analytic_account_id.id), ('category', '=', 'invoice')])
+        analytic_lines = self.env['account.analytic.line'].sudo().search([('account_id', '=', self.account_id.id), ('category', '=', 'invoice')])
         invoices = set([rec.move_line_id.move_id.id for rec in analytic_lines])
         return {
             'name': 'Invoices',
             'res_model': 'account.move',
             'type': 'ir.actions.act_window',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'context': {'create': 0, 'delete': 0},
             'domain': [('id', 'in', list(invoices))]
         }
@@ -249,10 +250,10 @@ class ProjectInherit(models.Model):
             'name': "Create Payment",
             'type': 'ir.actions.act_window',
             'res_model': 'approval.request',
-            'view_mode': 'form,tree',
+            'view_mode': 'form,list',
             'context': {'default_request_owner_id': self.user_id.id,
                         'default_date': datetime.now().strftime('%Y-%m-%d'),
-                        'default_analytical_account_id': self.analytic_account_id.id,
+                        'default_analytical_account_id': self.account_id.id,
                         'default_res_id': self.id,
                         'default_model_name': 'project.project',
                         'default_name': 'New'
@@ -266,24 +267,24 @@ class ProjectInherit(models.Model):
             'name': 'Payments',
             'res_model': 'approval.request',
             'type': 'ir.actions.act_window',
-            'view_mode': 'tree,form',
+            'view_mode': 'list,form',
             'context': {'create': 0, 'delete': 0},
             'domain': [('res_id', '=', self.id)]
         }
 
     def action_view_tasks(self):
         res = super().action_view_tasks()
-        res.update({'view_mode': 'tree,kanban,form,calendar,pivot,graph,activity', 'context': {'create': 0}})
+        res.update({'view_mode': 'list,kanban,form,calendar,pivot,graph,activity', 'context': {'create': 0}})
         return res
 
     # smart button made from account payment
     def action_view_payments(self):
-        analytic_items = self.env['account.analytic.line'].search([('account_id', '=', self.analytic_account_id.id), ('category', '=', 'other')])
+        analytic_items = self.env['account.analytic.line'].search([('account_id', '=', self.account_id.id), ('category', '=', 'other')])
         payments = analytic_items.filtered(lambda ai: ai.general_account_id.account_type == 'liability_payable' and ai.move_line_id.payment_id)
         return{'name': 'Payments',
                'res_model': 'account.payment',
                'type': 'ir.actions.act_window',
-               'view_mode': 'tree,form',
+               'view_mode': 'list,form',
                'context': {'create': 0, 'delete': 0},
                'domain': [('id', 'in', payments.move_line_id.mapped('payment_id').ids)],
                'target': 'current',
@@ -292,16 +293,16 @@ class ProjectInherit(models.Model):
     def _compute_payment_count(self):
         for rec in self:
             analytic_items = self.env['account.analytic.line'].search(
-                [('account_id', '=', rec.analytic_account_id.id), ('category', '=', 'other')])
+                [('account_id', '=', rec.account_id.id), ('category', '=', 'other')])
             payments = analytic_items.filtered(lambda ai: ai.general_account_id.account_type == 'liability_payable' and ai.move_line_id.payment_id)
             rec.payment_count = len(payments.move_line_id.mapped('move_id'))
 
     def action_view_bills(self):
-        analytic_lines = self.env['account.analytic.line'].search([('account_id', '=', self.analytic_account_id.id), ('category', '=', 'vendor_bill')])
+        analytic_lines = self.env['account.analytic.line'].search([('account_id', '=', self.account_id.id), ('category', '=', 'vendor_bill')])
         return{'name': 'Bills',
                'res_model': 'account.move',
                'type': 'ir.actions.act_window',
-               'view_mode': 'tree,form',
+               'view_mode': 'list,form',
                'context': {'create': 0, 'delete': 0},
                'target': 'current',
                'domain': [('id', 'in', analytic_lines.move_line_id.move_id.ids)]
@@ -309,9 +310,9 @@ class ProjectInherit(models.Model):
 
     def _compute_account_move_count(self):
         for rec in self:
-            rec.bill_count = len(self.env['account.analytic.line'].search([('account_id', '=', self.analytic_account_id.id),
+            rec.bill_count = len(self.env['account.analytic.line'].search([('account_id', '=', self.account_id.id),
                                                                            ('category', '=', 'vendor_bill')]).move_line_id.mapped('move_id'))
-            rec.project_invoice_count = len(self.env['account.analytic.line'].search([('account_id', '=', self.analytic_account_id.id),
+            rec.project_invoice_count = len(self.env['account.analytic.line'].search([('account_id', '=', self.account_id.id),
                                                                                       ('category', '=', 'invoice')]).move_line_id.mapped('move_id'))
 
 
@@ -340,7 +341,7 @@ class ProjectTaskInherit(models.Model):
     invoice_amount = fields.Float(readonly=1)
     quantity = fields.Float()
     price_unit = fields.Float()
-    # untaxed_amt = fields.Float(compute="_compute_amount", store=True)
+    untaxed_amt = fields.Float()
     rfq_value = fields.Float(compute="compute_purchase_values", store=True)
     purchase_value = fields.Float(readonly=1)
     bill_amount = fields.Float(readonly=1)

@@ -738,16 +738,16 @@ class AccountBatchPaymentInherit(models.Model):
             rec.cancelled_order_count = len(rec.cancelled_payments_ids.ids)
 
     # Inherited for batch payment status
-    @api.depends('payment_ids.move_id.is_move_sent', 'payment_ids.is_move_sent', 'payment_ids.is_matched', 'to_check',
+    @api.depends('payment_ids.move_id.is_move_sent', 'payment_ids.is_sent', 'payment_ids.is_matched', 'to_check',
                  'is_checked', 'is_reject')
     def _compute_state(self):
         for batch in self:
             test = all(pay.is_matched for pay in batch.payment_ids)
-            test2 = all(pay.is_move_sent for pay in batch.payment_ids)
+            test2 = all(pay.is_sent for pay in batch.payment_ids)
             test3 = batch.payment_ids.filtered(lambda x: x.is_matched is False)
-            if batch.payment_ids and all(pay.is_matched and pay.is_move_sent for pay in batch.payment_ids):
+            if batch.payment_ids and all(pay.is_matched and pay.is_sent for pay in batch.payment_ids):
                 batch.state = 'reconciled'
-            elif batch.payment_ids and all(pay.is_move_sent for pay in batch.payment_ids):
+            elif batch.payment_ids and all(pay.is_sent for pay in batch.payment_ids):
                 batch.state = 'sent'
             elif batch.to_check == True:
                 batch.state = 'submitted'
@@ -823,7 +823,7 @@ class AccountBatchPaymentInherit(models.Model):
         for payment in self.filtered(lambda x: x.state == 'draft'):
             # payment.state_mail_transfered()
             for line in payment.payment_ids:
-                line.state = 'posted'
+                line.state = 'paid'
         return res
 
     def batch_validate_action(self):
@@ -1044,10 +1044,10 @@ class AccountBatchPaymentInherit(models.Model):
     def management_approve(self):
         for rec in self:
             note = "Batch payment %s was Approved on %s by %s" % (
-                rec.name, fields.datetime.now(), rec.activity_user_id.name)
+                rec.name, datetime.now(), rec.activity_user_id.name)
             rec.message_post(body=note)
             rec.is_management_approved = True
-            rec.approved_date = fields.datetime.now()
+            rec.approved_date = datetime.now()
             rec.is_checked = False
             rec.state = 'management_approved'
 
@@ -1117,7 +1117,7 @@ class AccountBatchPaymentInherit(models.Model):
             sheet.write(row, 8, payment.amount or 0, money)
             sheet.write(row, 9, payment.partner_bank_id.bank_id.name or '')
             sheet.write(row, 10, payment.partner_bank_id.acc_number or '')
-            sheet.write(row, 11, payment.partner_bank_id.bank_bic or '')
+            sheet.write(row, 11, payment.partner_bank_id.bic or '')
 
             row += 1
 
@@ -1231,10 +1231,10 @@ class InheritAccountingPayment(models.Model):
     def action_post(self):
         res = super(InheritAccountingPayment, self).action_post()
         if self.analytics_account_id:
-            self.line_ids.analytic_distribution = {self.analytics_account_id.id: 100}
-        if (self.partner_bank_id.allow_out_payment is False) and (self.payment_type == 'outbound') and (
-                self.is_internal_transfer == False) and (self.partner_id.cust_partner_type != 'compliance'):
-            raise ValidationError('Payment receipt is not allowed for this contact.')
+            self.move_id.line_ids.analytic_distribution = {self.analytics_account_id.id: 100}
+        # if (self.partner_bank_id.allow_out_payment is False) and (self.payment_type == 'outbound') and (
+        #         self.is_internal_transfer == False) and (self.partner_id.cust_partner_type != 'compliance'):
+        #     raise ValidationError('Payment receipt is not allowed for this contact.')
         # return res
 
     @api.depends('date', 'batch_payment_id', 'batch_payment_id.bank_date')
@@ -1327,44 +1327,43 @@ class AccountInvoiceReport(models.Model):
 
     #
     #     @api.model
-    def _select(self):
-        return '''
-            SELECT
-                line.id,
-                line.move_id,
-                line.product_id,
-                line.account_id,
-                line.journal_id,
-                line.company_id,
-                line.company_currency_id,
-                line.partner_id AS commercial_partner_id,
-                account.account_type AS user_type,
-                move.state,
-                move.move_type,
-                move.partner_id,
-                move.invoice_user_id,
-                move.fiscal_position_id,
-                move.payment_state,
-                move.invoice_date,
-                move.service_date,
-                move.invoice_date_due,
-                uom_template.id                                             AS product_uom_id,
-                template.categ_id                                           AS product_categ_id,
-                line.quantity / NULLIF(COALESCE(uom_line.factor, 1) / COALESCE(uom_template.factor, 1), 0.0) * (CASE WHEN move.move_type IN ('in_invoice','out_refund','in_receipt') THEN -1 ELSE 1 END)
-                                                                            AS quantity,
-                -line.balance * currency_table.rate                         AS price_subtotal,
-                line.price_total * (CASE WHEN move.move_type IN ('in_invoice','out_refund','in_receipt') THEN -1 ELSE 1 END)
-                                                                            AS price_total,
-                -COALESCE(
-                   -- Average line price
-                   (line.balance / NULLIF(line.quantity, 0.0)) * (CASE WHEN move.move_type IN ('in_invoice','out_refund','in_receipt') THEN -1 ELSE 1 END)
-                   -- convert to template uom
-                   * (NULLIF(COALESCE(uom_line.factor, 1), 0.0) / NULLIF(COALESCE(uom_template.factor, 1), 0.0)),
-                   0.0) * currency_table.rate                               AS price_average,
-                COALESCE(partner.country_id, commercial_partner.country_id) AS country_id,
-                line.currency_id                                            AS currency_id
-
-        ''' + ", move.team_id as team_id"
+    # def _select(self):
+    #     return '''
+    #         SELECT
+    #             line.id,
+    #             line.move_id,
+    #             line.product_id,
+    #             line.account_id,
+    #             line.journal_id,
+    #             line.company_id,
+    #             line.company_currency_id,
+    #             line.partner_id AS commercial_partner_id,
+    #             account.account_type AS user_type,
+    #             move.state,
+    #             move.move_type,
+    #             move.partner_id,
+    #             move.invoice_user_id,
+    #             move.fiscal_position_id,
+    #             move.payment_state,
+    #             move.invoice_date,
+    #             move.service_date,
+    #             move.invoice_date_due,
+    #             uom_template.id                                             AS product_uom_id,
+    #             template.categ_id                                           AS product_categ_id,
+    #             line.quantity / NULLIF(COALESCE(uom_line.factor, 1) / COALESCE(uom_template.factor, 1), 0.0) * (CASE WHEN move.move_type IN ('in_invoice','out_refund','in_receipt') THEN -1 ELSE 1 END)
+    #                                                                         AS quantity,
+    #             -line.balance * currency_table.rate                         AS price_subtotal,
+    #             line.price_total * (CASE WHEN move.move_type IN ('in_invoice','out_refund','in_receipt') THEN -1 ELSE 1 END)
+    #                                                                         AS price_total,
+    #             -COALESCE(
+    #                -- Average line price
+    #                (line.balance / NULLIF(line.quantity, 0.0)) * (CASE WHEN move.move_type IN ('in_invoice','out_refund','in_receipt') THEN -1 ELSE 1 END)
+    #                -- convert to template uom
+    #                * (NULLIF(COALESCE(uom_line.factor, 1), 0.0) / NULLIF(COALESCE(uom_template.factor, 1), 0.0)),
+    #                0.0) * currency_table.rate                               AS price_average,
+    #             COALESCE(partner.country_id, commercial_partner.country_id) AS country_id,
+    #             line.currency_id                                            AS currency_id
+    #     ''' + ", move.team_id as team_id"
 
 
 class CustomExcel(models.TransientModel):
@@ -1553,16 +1552,17 @@ class ResPartnerBankInherit(models.Model):
 
     @api.model
     def create(self, vals):
-        account_number = vals.get('acc_number')
+        res = super(ResPartnerBankInherit, self).create(vals)
+        account_number = res.acc_number
         if account_number:
-            existing_account = self.search([('acc_number', '=', account_number)])
+            existing_account = self.search([('acc_number', '=', account_number),('id','!=',res.id)])
             if existing_account:
                 voucher_account = self.env['voucher.account.master'].sudo().search([('name', '=', account_number)])
                 if voucher_account:
                     return super(ResPartnerBankInherit, self).create(vals)
             if existing_account:
                 raise ValidationError('An account with the same account number already exists!!!')
-        return super(ResPartnerBankInherit, self).create(vals)
+        return res
 
     @api.onchange('acc_number')
     def validate_account_number(self):
@@ -1618,58 +1618,58 @@ class AnalyticAccountInherit(models.Model):
 class InheritAccountAnalytic(models.Model):
     _inherit = 'account.analytic.account'
 
-    @api.depends('line_ids.amount')
-    def _compute_debit_credit_balance(self):
-        Curr = self.env['res.currency']
-        analytic_line_obj = self.env['account.analytic.line']
-        domain = [
-            ('account_id', 'in', self.ids),
-            ('company_id', 'in', [False] + self.env.companies.ids)
-        ]
-        if self._context.get('from_date', False):
-            domain.append(('date', '>=', self._context['from_date']))
-        if self._context.get('to_date', False):
-            domain.append(('date', '<=', self._context['to_date']))
-
-        user_currency = self.env.company.currency_id
-        credit_groups = analytic_line_obj.read_group(
-            domain=domain + [('amount', '>=', 0.0)],
-            fields=['account_id', 'currency_id', 'amount'],
-            groupby=['account_id', 'currency_id'],
-            lazy=False,
-        )
-        data_credit = defaultdict(float)
-        for l in credit_groups:
-            data_credit[l['account_id'][0]] += Curr.browse(l['currency_id'][0])._convert(
-                l['amount'], user_currency, self.env.company, fields.Date.today())
-
-        debit_groups = analytic_line_obj.read_group(
-            domain=domain + [('amount', '<', 0.0)],
-            fields=['account_id', 'currency_id', 'amount'],
-            groupby=['account_id', 'currency_id'],
-            lazy=False,
-        )
-        data_debit = defaultdict(float)
-        for l in debit_groups:
-            data_debit[l['account_id'][0]] += Curr.browse(l['currency_id'][0])._convert(
-                l['amount'], user_currency, self.env.company, fields.Date.today())
-        bank_journal_ids = self.env['account.journal'].search([('type', '=', 'bank')])
-        outgoing_acc_ids = bank_journal_ids.outbound_payment_method_line_ids.mapped('payment_account_id')
-        payment_outstanding_account = self.env.company.account_journal_payment_credit_account_id
-        outgoing_account_ids = outgoing_acc_ids + payment_outstanding_account
-        for account in self:
-            # account_move = self.enc['account.move.line'].search([('account_id.account_type', 'in', ['income', 'expense'])])
-            debit = 0
-            credit = 0
-            pay_t = 0
-            for rec in account.line_ids:
-                if rec.move_line_id.account_id.account_type in ['income', 'expense']:
-                    debit += rec.move_line_id.debit
-                    credit += rec.move_line_id.credit
-                if rec.move_line_id.account_id.id in payment_outstanding_account.ids:
-                    pay_t += rec.move_line_id.credit
-                    pay_t -= rec.move_line_id.debit
-            account.debit = debit
-            account.credit = credit
-            account.payments_transfer = pay_t
-            account.balance = account.credit - account.debit
+    # @api.depends('line_ids.amount')
+    # def _compute_debit_credit_balance(self):
+    #     Curr = self.env['res.currency']
+    #     analytic_line_obj = self.env['account.analytic.line']
+    #     domain = [
+    #         ('account_id', 'in', self.ids),
+    #         ('company_id', 'in', [False] + self.env.companies.ids)
+    #     ]
+    #     if self._context.get('from_date', False):
+    #         domain.append(('date', '>=', self._context['from_date']))
+    #     if self._context.get('to_date', False):
+    #         domain.append(('date', '<=', self._context['to_date']))
+    #
+    #     user_currency = self.env.company.currency_id
+    #     credit_groups = analytic_line_obj.read_group(
+    #         domain=domain + [('amount', '>=', 0.0)],
+    #         fields=['account_id', 'currency_id', 'amount'],
+    #         groupby=['account_id', 'currency_id'],
+    #         lazy=False,
+    #     )
+    #     data_credit = defaultdict(float)
+    #     for l in credit_groups:
+    #         data_credit[l['account_id'][0]] += Curr.browse(l['currency_id'][0])._convert(
+    #             l['amount'], user_currency, self.env.company, fields.Date.today())
+    #
+    #     debit_groups = analytic_line_obj.read_group(
+    #         domain=domain + [('amount', '<', 0.0)],
+    #         fields=['account_id', 'currency_id', 'amount'],
+    #         groupby=['account_id', 'currency_id'],
+    #         lazy=False,
+    #     )
+    #     data_debit = defaultdict(float)
+    #     for l in debit_groups:
+    #         data_debit[l['account_id'][0]] += Curr.browse(l['currency_id'][0])._convert(
+    #             l['amount'], user_currency, self.env.company, fields.Date.today())
+    #     # bank_journal_ids = self.env['account.journal'].search([('type', '=', 'bank')])
+    #     # outgoing_acc_ids = bank_journal_ids.outbound_payment_method_line_ids.mapped('payment_account_id')
+    #     # payment_outstanding_account = self.env.company.account_journal_payment_credit_account_id
+    #     # outgoing_account_ids = outgoing_acc_ids + payment_outstanding_account
+    #     for account in self:
+    #         # account_move = self.enc['account.move.line'].search([('account_id.account_type', 'in', ['income', 'expense'])])
+    #         debit = 0
+    #         credit = 0
+    #         pay_t = 0
+    #         for rec in account.line_ids:
+    #             if rec.move_line_id.account_id.account_type in ['income', 'expense']:
+    #                 debit += rec.move_line_id.debit
+    #                 credit += rec.move_line_id.credit
+    #             if rec.move_line_id.account_id.id in payment_outstanding_account.ids:
+    #                 pay_t += rec.move_line_id.credit
+    #                 pay_t -= rec.move_line_id.debit
+    #         account.debit = debit
+    #         account.credit = credit
+    #         account.payments_transfer = pay_t
+    #         account.balance = account.credit - account.debit

@@ -6,13 +6,13 @@
         <field name="type">form</field>
         <field name="arch" type="xml">
             <form>
-                <script>
-                    $(document).ready(function(){
-                    $('.modal-dialog').css({'width': '100%', 'height': '100%'});
-                    $('.modal-content').css({'width': '100%','height': '100%'});
-                    $('.modal-body').css({'width': '100%','height': '100%'});
-                    });
-                </script>
+<!--                <script>-->
+<!--                    $(document).ready(function(){-->
+<!--                    $('.modal-dialog').css({'width': '100%', 'height': '100%'});-->
+<!--                    $('.modal-content').css({'width': '100%','height': '100%'});-->
+<!--                    $('.modal-body').css({'width': '100%','height': '100%'});-->
+<!--                    });-->
+<!--                </script>-->
                 <group>
                     <field name="import_type"/>
                     <field name="file_name" invisible="1"/>
@@ -48,7 +48,6 @@
 
     <record id="action_order_import_file_pmt" model="ir.actions.act_window">
         <field name="name">Import Payment</field>
-        <field name="type">ir.actions.act_window</field>
         <field name="res_model">import.payment</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>

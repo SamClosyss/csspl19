@@ -29,15 +29,15 @@ class AccountDashboard(models.TransientModel):
         return {
             'name': "Analytic Dashboard",
             'res_model': 'account.dashboard.wiz',
-            'view_mode': 'tree,pivot',
+            'view_mode': 'list,pivot',
             'type': 'ir.actions.act_window',
             'domain': [('create_uid', '=', self.env.user.id)],
             'context': {'create': 0, 'delete': 0}
         }
 
     def get_sales_query(self):
-        query = """insert into account_dashboard_wiz (date, analytic_plan, partner_id, sales, outstanding, record_id, 
-        model_name, create_uid) select al.date, al.plan_id, al.partner_id, al.amount, al.amount, am.id , 'account.move', {} 
+        query = """insert into account_dashboard_wiz (date, partner_id, sales, outstanding, record_id, 
+        model_name, create_uid) select al.date, al.partner_id, al.amount, al.amount, am.id , 'account.move', {} 
         from account_analytic_line as al
         join account_account as coa on al.general_account_id = coa.id and account_type = 'income'
         join account_move_line as aml on al.move_line_id = aml.id
@@ -46,14 +46,14 @@ class AccountDashboard(models.TransientModel):
         self.env.cr.execute(query)
 
     def get_expense_query(self):
-        query = """insert into account_dashboard_wiz (date, analytic_plan, partner_id, payed, record_id, model_name, create_uid)
-                        select am.date, pm.analytics_plan_id, pm.partner_id, pm.amount, pm.id, 'account.payment', {} from account_payment as pm
+        query = """insert into account_dashboard_wiz (date, partner_id, payed, record_id, model_name, create_uid)
+                        select am.date, pm.partner_id, pm.amount, pm.id, 'account.payment', {} from account_payment as pm
                         join account_move as am on pm.move_id = am.id
                         where pm.payment_type = 'outbound' and pm.analytics_plan_id is not null and am.state = 'posted';
                         """.format(self.env.user.id)
         self.env.cr.execute(query)
-        query_2 = """insert into account_dashboard_wiz (date, analytic_plan, partner_id, payed, record_id, model_name, create_uid)
-        select al.date, al.plan_id, al.partner_id, al.amount, am.id, 'account.move', {} from account_analytic_line as al
+        query_2 = """insert into account_dashboard_wiz (date, partner_id, payed, record_id, model_name, create_uid)
+        select al.date, al.partner_id, al.amount, am.id, 'account.move', {} from account_analytic_line as al
         join account_account as coa on al.general_account_id = coa.id and account_type = 'income'
         join account_move_line as aml on al.move_line_id = aml.id
         join account_move am on aml.move_id = am.id where am.move_type = 'out_refund' and am.state = 'posted';
@@ -61,8 +61,8 @@ class AccountDashboard(models.TransientModel):
         self.env.cr.execute(query_2)
 
     def get_received_payments(self):
-        query = """insert into account_dashboard_wiz (date, analytic_plan, partner_id, received, outstanding, record_id, model_name, create_uid)
-                select am.date, pm.analytics_plan_id, pm.partner_id, pm.amount, pm.amount * -1, pm.id, 'account.payment', {} from account_payment as pm
+        query = """insert into account_dashboard_wiz (date, partner_id, received, outstanding, record_id, model_name, create_uid)
+                select am.date, pm.partner_id, pm.amount, pm.amount * -1, pm.id, 'account.payment', {} from account_payment as pm
                 join account_move as am on pm.move_id = am.id
                 where pm.payment_type = 'inbound' and pm.analytics_plan_id is not null and am.state = 'posted';""".format(self.env.user.id)
         self.env.cr.execute(query)

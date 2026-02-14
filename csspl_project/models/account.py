@@ -271,15 +271,15 @@ class AccountPaymentInherit(models.Model):
             # is not triggered by the ORM when setting batch_payment_id to None
             payment.batch_payment_id.update({'payment_ids': [(4, payment.id)]})
 
-    def action_draft(self):
-        if self.payment_state == 'reversed' and self.reversal_move_id.filtered(lambda x: x.state == 'posted' and x.payment_state != 'reversed'):
-            raise ValidationError("Kindly reset to draft the reversal entry first.")
-        return super().action_draft()
+    # def action_draft(self):
+    #     if self.payment_state == 'reversed' and self.reversal_move_id.filtered(lambda x: x.state == 'posted' and x.payment_state != 'reversed'):
+    #         raise ValidationError("Kindly reset to draft the reversal entry first.")
+    #     return super().action_draft()
 
     def action_post(self):
         self.onchange_payment_month_id()
-        if self.reversed_entry_id and self.reversed_entry_id.state != 'posted':
-            raise ValidationError("Kindly post the entry from which this reversal entry was created")
+        # if self.reversed_entry_id and self.reversed_entry_id.state != 'posted':
+        #     raise ValidationError("Kindly post the entry from which this reversal entry was created")
         return super().action_post()
 
     def action_return_entry(self):
@@ -444,70 +444,70 @@ class AccountMoveInherit(models.Model):
 
 
 ######## PURPUSOLY OVERIDING THE FUNCTION TO REMOVE CASH_ROUDING PARAMETER AS IT IS COMMMENTED BELOW IT WAS GIVING ADDONS ERROR ON LLIVE ####
-    @api.depends('invoice_payment_term_id', 'invoice_date', 'currency_id', 'amount_total_in_currency_signed', 'invoice_date_due')
-    def _compute_needed_terms(self):
-        for invoice in self:
-            is_draft = invoice.id != invoice._origin.id
-            invoice.needed_terms = {}
-            invoice.needed_terms_dirty = True
-            sign = 1 if invoice.is_inbound(include_receipts=True) else -1
-            if invoice.is_invoice(True) and invoice.invoice_line_ids:
-                if invoice.invoice_payment_term_id:
-                    if is_draft:
-                        tax_amount_currency = 0.0
-                        untaxed_amount_currency = 0.0
-                        for line in invoice.invoice_line_ids:
-                            untaxed_amount_currency += line.price_subtotal
-                            for tax_result in (line.compute_all_tax or {}).values():
-                                tax_amount_currency += -sign * tax_result.get('amount_currency', 0.0)
-                        untaxed_amount = untaxed_amount_currency
-                        tax_amount = tax_amount_currency
-                    else:
-                        tax_amount_currency = invoice.amount_tax * sign
-                        tax_amount = invoice.amount_tax_signed
-                        untaxed_amount_currency = invoice.amount_untaxed * sign
-                        untaxed_amount = invoice.amount_untaxed_signed
-                    invoice_payment_terms = invoice.invoice_payment_term_id._compute_terms(
-                        date_ref=invoice.invoice_date or invoice.date or fields.Date.context_today(invoice),
-                        currency=invoice.currency_id,
-                        tax_amount_currency=tax_amount_currency,
-                        tax_amount=tax_amount,
-                        untaxed_amount_currency=untaxed_amount_currency,
-                        untaxed_amount=untaxed_amount,
-                        company=invoice.company_id,
-                        # cash_rounding=invoice.invoice_cash_rounding_id,
-                        sign=sign
-                    )
-                    for term in invoice_payment_terms:
-                        key = frozendict({
-                            'move_id': invoice.id,
-                            'date_maturity': fields.Date.to_date(term.get('date')),
-                            'discount_date': term.get('discount_date'),
-                            'discount_percentage': term.get('discount_percentage'),
-                        })
-                        values = {
-                            'balance': term['company_amount'],
-                            'amount_currency': term['foreign_amount'],
-                            'discount_amount_currency': term['discount_amount_currency'] or 0.0,
-                            'discount_balance': term['discount_balance'] or 0.0,
-                            'discount_date': term['discount_date'],
-                            'discount_percentage': term['discount_percentage'],
-                        }
-                        if key not in invoice.needed_terms:
-                            invoice.needed_terms[key] = values
-                        else:
-                            invoice.needed_terms[key]['balance'] += values['balance']
-                            invoice.needed_terms[key]['amount_currency'] += values['amount_currency']
-                else:
-                    invoice.needed_terms[frozendict({
-                        'move_id': invoice.id,
-                        'date_maturity': fields.Date.to_date(invoice.invoice_date_due),
-                        'discount_date': False,
-                        'discount_percentage': 0
-                    })] = {
-                        'balance': invoice.amount_total_signed,
-                        'amount_currency': invoice.amount_total_in_currency_signed,
-                    }
+    # @api.depends('invoice_payment_term_id', 'invoice_date', 'currency_id', 'amount_total_in_currency_signed', 'invoice_date_due')
+    # def _compute_needed_terms(self):
+    #     for invoice in self:
+    #         is_draft = invoice.id != invoice._origin.id
+    #         invoice.needed_terms = {}
+    #         invoice.needed_terms_dirty = True
+    #         sign = 1 if invoice.is_inbound(include_receipts=True) else -1
+    #         if invoice.is_invoice(True) and invoice.invoice_line_ids:
+    #             if invoice.invoice_payment_term_id:
+    #                 if is_draft:
+    #                     tax_amount_currency = 0.0
+    #                     untaxed_amount_currency = 0.0
+    #                     for line in invoice.invoice_line_ids:
+    #                         untaxed_amount_currency += line.price_subtotal
+    #                         for tax_result in (line.compute_all_tax or {}).values():
+    #                             tax_amount_currency += -sign * tax_result.get('amount_currency', 0.0)
+    #                     untaxed_amount = untaxed_amount_currency
+    #                     tax_amount = tax_amount_currency
+    #                 else:
+    #                     tax_amount_currency = invoice.amount_tax * sign
+    #                     tax_amount = invoice.amount_tax_signed
+    #                     untaxed_amount_currency = invoice.amount_untaxed * sign
+    #                     untaxed_amount = invoice.amount_untaxed_signed
+    #                 invoice_payment_terms = invoice.invoice_payment_term_id._compute_terms(
+    #                     date_ref=invoice.invoice_date or invoice.date or fields.Date.context_today(invoice),
+    #                     currency=invoice.currency_id,
+    #                     tax_amount_currency=tax_amount_currency,
+    #                     tax_amount=tax_amount,
+    #                     untaxed_amount_currency=untaxed_amount_currency,
+    #                     untaxed_amount=untaxed_amount,
+    #                     company=invoice.company_id,
+    #                     # cash_rounding=invoice.invoice_cash_rounding_id,
+    #                     sign=sign
+    #                 )
+    #                 for term in invoice_payment_terms:
+    #                     key = frozendict({
+    #                         'move_id': invoice.id,
+    #                         'date_maturity': fields.Date.to_date(term.get('date')),
+    #                         'discount_date': term.get('discount_date'),
+    #                         'discount_percentage': term.get('discount_percentage'),
+    #                     })
+    #                     values = {
+    #                         'balance': term['company_amount'],
+    #                         'amount_currency': term['foreign_amount'],
+    #                         'discount_amount_currency': term['discount_amount_currency'] or 0.0,
+    #                         'discount_balance': term['discount_balance'] or 0.0,
+    #                         'discount_date': term['discount_date'],
+    #                         'discount_percentage': term['discount_percentage'],
+    #                     }
+    #                     if key not in invoice.needed_terms:
+    #                         invoice.needed_terms[key] = values
+    #                     else:
+    #                         invoice.needed_terms[key]['balance'] += values['balance']
+    #                         invoice.needed_terms[key]['amount_currency'] += values['amount_currency']
+    #             else:
+    #                 invoice.needed_terms[frozendict({
+    #                     'move_id': invoice.id,
+    #                     'date_maturity': fields.Date.to_date(invoice.invoice_date_due),
+    #                     'discount_date': False,
+    #                     'discount_percentage': 0
+    #                 })] = {
+    #                     'balance': invoice.amount_total_signed,
+    #                     'amount_currency': invoice.amount_total_in_currency_signed,
+    #                 }
 
 class AccountMoveLineInherit(models.Model):
     _inherit = 'account.move.line'
@@ -531,7 +531,8 @@ class AccountTaxInherit(models.Model):
 class AccountAnalyticInherit(models.Model):
     _inherit = 'account.analytic.account'
 
-    count = fields.Integer(string='Count', compute="_compute_count")
+    count = fields.Integer(string='Count')
+    # count = fields.Integer(string='Count', compute="_compute_count")
 
     def name_get(self):
         result = []
@@ -541,16 +542,16 @@ class AccountAnalyticInherit(models.Model):
         return result
 
 
-    def _compute_count(self):
-        for rec in self:
-            bank_journal_ids = self.env['account.journal'].search([('type', '=', 'bank')])
-            outgoing_acc_ids = bank_journal_ids.outbound_payment_method_line_ids.mapped('payment_account_id')
-            payment_outstanding_account = self.env.company.account_journal_payment_credit_account_id
-            outgoing_account_ids = outgoing_acc_ids + payment_outstanding_account
-            analytical_line_ids = self.env['account.analytic.line'].search_count(
-                [('general_account_id', 'in', outgoing_account_ids.ids), ('account_id', '=', rec.id)])
-
-            rec.count = analytical_line_ids
+    # def _compute_count(self):
+    #     for rec in self:
+    #         bank_journal_ids = self.env['account.journal'].search([('type', '=', 'bank')])
+    #         outgoing_acc_ids = bank_journal_ids.outbound_payment_method_line_ids.mapped('payment_account_id')
+    #         payment_outstanding_account = self.env.company.account_journal_payment_credit_account_id
+    #         outgoing_account_ids = outgoing_acc_ids + payment_outstanding_account
+    #         analytical_line_ids = self.env['account.analytic.line'].search_count(
+    #             [('general_account_id', 'in', outgoing_account_ids.ids), ('account_id', '=', rec.id)])
+    #
+    #         rec.count = analytical_line_ids
 
     def action_view_payment(self):
         bank_journal_ids = self.env['account.journal'].search([('type', '=', 'bank')])
