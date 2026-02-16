@@ -6,7 +6,7 @@
     'description': """ product """,
     'category': 'Productivity',
     'website': 'https://www.odoomates.tech',
-    'depends': ['base','account','accountant','account_batch_payment','purchase','analytic','contacts','account_followup','account_accountant_batch_payment'],
+    'depends': ['base','account','account_reports','accountant','account_batch_payment','purchase','analytic','contacts','account_followup','account_accountant_batch_payment'],
     'license': 'LGPL-3',
     'application': True,
     'data': [
@@ -14,6 +14,7 @@
         'security/security.xml',
              'views/accounts.xml',
              'views/contact.xml',
+             'views/contact_report.xml',
              'views/payment_report.xml',
              # 'views/res_setting_view.xml',
              'reports/css_tax_invoice_report.xml',

@@ -3,3 +3,4 @@ from . import accounts
 # from . import inherit_account
 # from . import gstr
 from . import payment_report
+from . import contact_report
