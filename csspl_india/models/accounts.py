@@ -137,10 +137,10 @@ class AccountMoveInherit(models.Model):
         return {'domain': {'journal_id': domain}}
 
     # onchange for Place of Supply
-    @api.onchange('journal_id')
-    def onchange_journal_id(self):
-        if self.journal_id:
-            self.l10n_in_state_id = self.partner_id.state_id
+    # @api.onchange('journal_id')
+    # def onchange_journal_id(self):
+    #     if self.journal_id:
+    #         self.l10n_in_state_id = self.partner_id.state_id
 
     # For Tax Calculation
     @api.depends('tax_totals')
