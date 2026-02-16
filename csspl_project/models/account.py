@@ -1,5 +1,5 @@
 from odoo import fields, models, api, _
-from datetime import datetime
+from datetime import datetime,date
 from odoo.exceptions import ValidationError, UserError
 from odoo.osv import expression
 import re
@@ -113,6 +113,7 @@ class ResPartner(models.Model):
 class AccountPaymentInherit(models.Model):
     _inherit = 'account.payment'
 
+    payment_for_id = fields.Many2one('payment.for.master')
     payment_month_id = fields.Many2one(comodel_name='payments.month', string='Payments Month', tracking=True)
     approval_type = fields.Many2one(comodel_name='approval.category', string='Approval_type') ## No use till yet
     approval_request = fields.Many2one(comodel_name='approval.request', string='Approval Request')
@@ -128,6 +129,13 @@ class AccountPaymentInherit(models.Model):
         compute='_compute_destination_account_id',
         domain="[('company_ids', 'in', company_id)]",
         check_company=True)
+    reversal_move_id = fields.Many2one('account.move')
+
+    @api.onchange('payment_for_id')
+    def compute_destination_account(self):
+        for rec in self:
+            if rec.payment_for_id:
+                rec.destination_account_id = rec.payment_for_id.account_id.id
 
     def _synchronize_from_moves(self, changed_fields):
         ''' Update the account.payment regarding its related account.move.
@@ -282,34 +290,67 @@ class AccountPaymentInherit(models.Model):
         #     raise ValidationError("Kindly post the entry from which this reversal entry was created")
         return super().action_post()
 
+    def button_open_reversal_entry(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Reversal Entry',
+            'view_mode': 'form',
+            'res_model': 'account.move',
+            'res_id': self.reversal_move_id.id,
+        }
+
     def action_return_entry(self):
         if self.payment_type == 'outbound':
-            if self.reversal_move_id or self.reversed_entry_id:
-                raise ValidationError("A reverse payment entry has already been created")
-            return_vend_pay = self.env['account.payment'].create(
-                {'payment_type': 'inbound', 'journal_id': self.journal_id.id,
-                 'partner_id': self.partner_id.id, 'destination_account_id': self.destination_account_id.id,
-                 'partner_type': 'supplier', 'ref': f'Return Payment against {self.name}', 'amount': self.amount,
-                 'analytics_plan_id': self.analytics_plan_id.id,
-                 'analytics_account_id': self.analytics_account_id.id,
-                 'narration': self.narration,
-                 'partner_bank_id': self.partner_bank_id.id,
-                 'reversed_entry_id': self.move_id.id,
-                 'month': self.month,
-                 'css_local_branch': self.css_local_branch,
-                 'css_state': self.css_state,
-                 })
-            return_vend_pay.message_post(body=f"Return Payment Created from {self._get_html_link(self.name)}")
-            self.message_post(body=f"Return Entry created {return_vend_pay._get_html_link(self.name)}")
-            # return_vend_pay.action_post()
-            self.move_id.payment_state = 'reversed'
-            return {
-                'name': f'Reverse of {self.name}',
-                'type': 'ir.actions.act_window',
-                'res_model': 'account.payment',
-                'view_mode': 'form',
-                'res_id': return_vend_pay.id,
-            }
+            if self.move_id:
+                reversal_id = self.env['account.move.reversal'].create({'journal_id':self.journal_id.id,'date':date.today(),'move_ids':self.move_id.ids})
+                # Run reverse (IGNORE return)
+                reversal_id.refund_moves()
+
+                # Now get created move from wizard
+                reversed_move = reversal_id.new_move_ids
+
+                # Link to payment
+                self.reversal_move_id = reversed_move.id
+
+                self.reversal_move_id = reversed_move.id
+                # self.reversal_move_id = reversal_move_id.id
+                # return {
+                #     'name': f'Reverse of {self.name}',
+                #     'type': 'ir.actions.act_window',
+                #     'res_model': 'account.move',
+                #     'view_mode': 'form',
+                #     'res_id': reversal_move_id.id,
+                # }
+
+
+
+            # if self.reversed_entry_id:
+            #     raise ValidationError("A reverse payment entry has already been created")
+            # return_vend_pay = self.env['account.payment'].create(
+            #     {'payment_type': 'inbound', 'journal_id': self.journal_id.id,
+            #      'partner_id': self.partner_id.id, 'destination_account_id': self.destination_account_id.id,
+            #      'partner_type': 'supplier', 'memo': f'Return Payment against {self.name}', 'amount': self.amount,
+            #      'analytics_plan_id': self.analytics_plan_id.id,
+            #      'analytics_account_id': self.analytics_account_id.id,
+            #      'narration': self.narration,
+            #      'partner_bank_id': self.partner_bank_id.id,
+            #      'payment_month_id':self.payment_month_id.id,
+            #      'month': self.month,
+            #      'css_local_branch': self.css_local_branch,
+            #      'css_state': self.css_state,
+            #      })
+            # return_vend_pay.message_post(body=f"Return Payment Created from {self._get_html_link(self.name)}")
+            # self.message_post(body=f"Return Entry created {return_vend_pay._get_html_link(self.name)}")
+            # # return_vend_pay.action_post()
+            # self.move_id.payment_state = 'reversed'
+            # return {
+            #     'name': f'Reverse of {self.name}',
+            #     'type': 'ir.actions.act_window',
+            #     'res_model': 'account.payment',
+            #     'view_mode': 'form',
+            #     'res_id': return_vend_pay.id,
+            # }
 
 
 class ChangeJournalInBatch(models.TransientModel):

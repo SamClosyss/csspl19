@@ -26,40 +26,34 @@
     </record>
 
     <!--    showing account entries to all the user no matter he is having the account access or not-->
-<!--    <record id="field_account_inherit" model="ir.ui.view">-->
-<!--        <field name="name">Account Entries</field>-->
-<!--        <field name="model">res.partner</field>-->
-<!--        <field name="inherit_id" ref="account.view_partner_property_form"/>-->
-<!--        <field name="arch" type="xml">-->
-<!--            <xpath expr="//group[@name='accounting']" position="replace">-->
-<!--                <group string="Accounting Entries" name="accounting_entries">-->
-<!--                    <field name="currency_id" invisible="1"/>-->
-<!--                    <field name="property_account_receivable_id"/>-->
-<!--                    <field name="property_account_payable_id"/>-->
-<!--                </group>-->
-<!--            </xpath>-->
-<!--        </field>-->
-<!--    </record>-->
+    <!--    <record id="field_account_inherit" model="ir.ui.view">-->
+    <!--        <field name="name">Account Entries</field>-->
+    <!--        <field name="model">res.partner</field>-->
+    <!--        <field name="inherit_id" ref="account.view_partner_property_form"/>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <xpath expr="//group[@name='accounting']" position="replace">-->
+    <!--                <group string="Accounting Entries" name="accounting_entries">-->
+    <!--                    <field name="currency_id" invisible="1"/>-->
+    <!--                    <field name="property_account_receivable_id"/>-->
+    <!--                    <field name="property_account_payable_id"/>-->
+    <!--                </group>-->
+    <!--            </xpath>-->
+    <!--        </field>-->
+    <!--    </record>-->
 
 
-
-
-
-<!--    <record id="report_followup_inherit" model="ir.ui.view">-->
-<!--        <field name="name">account.move.for.follow.up</field>-->
-<!--        <field name="model">res.partner</field>-->
-<!--        <field name="inherit_id" ref="account_followup.customer_statements_form_view"/>-->
-<!--        <field name="arch" type="xml">-->
-<!--            <xpath expr="//form/sheet/field[@name='unreconciled_aml_ids']/list/field[@name='date_maturity']"-->
-<!--                   position="after">-->
-<!--                <field name="analytic_id" optional="hide"/>-->
-<!--                <field name="analytic_dist_id" optional="show"/>-->
-<!--            </xpath>-->
-<!--        </field>-->
-<!--    </record>-->
-
-
-
+    <!--    <record id="report_followup_inherit" model="ir.ui.view">-->
+    <!--        <field name="name">account.move.for.follow.up</field>-->
+    <!--        <field name="model">res.partner</field>-->
+    <!--        <field name="inherit_id" ref="account_followup.customer_statements_form_view"/>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <xpath expr="//form/sheet/field[@name='unreconciled_aml_ids']/list/field[@name='date_maturity']"-->
+    <!--                   position="after">-->
+    <!--                <field name="analytic_id" optional="hide"/>-->
+    <!--                <field name="analytic_dist_id" optional="show"/>-->
+    <!--            </xpath>-->
+    <!--        </field>-->
+    <!--    </record>-->
 
 
     <!-- Inherited Account Batch Payment Search View   -->
@@ -74,32 +68,32 @@
         </field>
     </record>
 
-<!--    <record id="view_account_payment_form_inherit1" model="ir.ui.view">-->
-<!--        <field name="name">view.account.payment.form.inherit</field>-->
-<!--        <field name="model">account.payment</field>-->
-<!--        <field name="inherit_id" ref="csspl_india.view_account_payment_form_reconcile"/>-->
-<!--        <field name="arch" type="xml">-->
-<!--            <xpath expr="//field[@name='partial_lines']/.." position="after">-->
-<!--                <page name="extra_info" string="Other Info"-->
-<!--                      invisible="payment_type not in ('outbound')">-->
-<!--                    <group>-->
-<!--                        <group>-->
-<!--                            <field name="request_by"/>-->
-<!--                            <field name="request_received_date" widget="date"/>-->
-<!--                            <field name="sup_name" options="{'no_create': True}"/>-->
-<!--                        </group>-->
-<!--                        <group>-->
-<!--                            <field name="customer_ch"/>-->
-<!--                            <field name="bank"/>-->
-<!--                            <field name="atm_id"/>-->
-<!--                            <field name="mail_by"/>-->
-<!--                            <field name="requester_mail_id"/>-->
-<!--                        </group>-->
-<!--                    </group>-->
-<!--                </page>-->
-<!--            </xpath>-->
-<!--        </field>-->
-<!--    </record>-->
+    <!--    <record id="view_account_payment_form_inherit1" model="ir.ui.view">-->
+    <!--        <field name="name">view.account.payment.form.inherit</field>-->
+    <!--        <field name="model">account.payment</field>-->
+    <!--        <field name="inherit_id" ref="csspl_india.view_account_payment_form_reconcile"/>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <xpath expr="//field[@name='partial_lines']/.." position="after">-->
+    <!--                <page name="extra_info" string="Other Info"-->
+    <!--                      invisible="payment_type not in ('outbound')">-->
+    <!--                    <group>-->
+    <!--                        <group>-->
+    <!--                            <field name="request_by"/>-->
+    <!--                            <field name="request_received_date" widget="date"/>-->
+    <!--                            <field name="sup_name" options="{'no_create': True}"/>-->
+    <!--                        </group>-->
+    <!--                        <group>-->
+    <!--                            <field name="customer_ch"/>-->
+    <!--                            <field name="bank"/>-->
+    <!--                            <field name="atm_id"/>-->
+    <!--                            <field name="mail_by"/>-->
+    <!--                            <field name="requester_mail_id"/>-->
+    <!--                        </group>-->
+    <!--                    </group>-->
+    <!--                </page>-->
+    <!--            </xpath>-->
+    <!--        </field>-->
+    <!--    </record>-->
 
     <record model="ir.ui.view" id="view_account_payment_search_inherit_csspl_india">
         <field name="name">view_account_payment_search_inherit_csspl_india</field>
@@ -121,13 +115,12 @@
                 <attribute name="groups">account.group_account_manager,account.group_account_user</attribute>
             </xpath>
             <xpath expr="//button[@name='action_post']" position="attributes">
-                <attribute name="invisible">batch_payment_id != False</attribute>
+                <attribute name="invisible">state != 'draft'</attribute>
             </xpath>
             <xpath expr="//form/sheet/group/group[2]/field[@name='payment_method_line_id']"
                    position="after">
                 <field name="cheque_number1"/>
                 <field name="cheque_date"/>
-                <field name="payment_for" readonly="state in ('posted', 'cancel')"/>
                 <!--attrs="{'invisible': [('partner_type','=','customer')]}"-->
                 <!--                <field name="s_check" attrs="{'readonly': [('state','=','posted')]}"/>-->
                 <!--                <field name="advances_check" attrs="{'readonly': [('state','=','posted')]}"/>-->
@@ -148,7 +141,7 @@
                 <field name="css_local_branch"/>
                 <field name="css_state"/>
                 <field name="month"/>
-                <field name="contigency"/>
+                <!--                <field name="contigency"/>-->
                 <field name="payment_reference"/>
             </xpath>
         </field>
@@ -251,7 +244,8 @@
                     </button>
                 </div>
             </xpath>
-            <xpath expr="//notebook//page[@name='batch_content']/field[@name='payment_ids']/list/field[@name='partner_id']" position="after">
+            <xpath expr="//notebook//page[@name='batch_content']/field[@name='payment_ids']/list/field[@name='partner_id']"
+                   position="after">
                 <field name="partner_bank_id"/>
             </xpath>
 
@@ -303,7 +297,7 @@
                 <field name="rej_reason"/>
                 <field name="subject_line" required="1"/>
                 <field name="attachment_batch" required="state in ['draft','submitted']"
-                                                                                readonly="state in ['management_approval','bank_upload','pending_transfer','sent']"
+                       readonly="state in ['management_approval','bank_upload','pending_transfer','sent']"
                        filename="pdf_drawing_name"/>
                 <field name="working_attachment" invisible="1" filename="pdf_attachment_name"/>
                 <field name="is_amt_bool" invisible="1"/>
@@ -347,7 +341,6 @@
     </record>
 
 
-
     <record id="view_batch_payment_tree_inherit" model="ir.ui.view">
         <field name="name">account.batch.payment.tree.inherit</field>
         <field name="model">account.batch.payment</field>
@@ -385,62 +378,61 @@
     </record>
 
 
-
-<!--    <record id="view_account_batch_payment_list_bank_rec_widget_inherit" model="ir.ui.view">-->
-<!--        <field name="name">account.batch.payment.inherit</field>-->
-<!--        <field name="model">account.batch.payment</field>-->
-<!--        <field name="inherit_id"-->
-<!--               ref="account_accountant_batch_payment.view_account_batch_payment_list_bank_rec_widget"/>-->
-<!--        <field name="arch" type="xml">-->
-<!--            <xpath expr="//field[@name='amount_residual']" position="after">-->
-<!--                <field name="ref_bank_no"-->
-<!--                       string="Bank Reference"-->
-<!--                       optional="hide"/>-->
-<!--            </xpath>-->
-<!--        </field>-->
-<!--    </record>-->
+    <!--    <record id="view_account_batch_payment_list_bank_rec_widget_inherit" model="ir.ui.view">-->
+    <!--        <field name="name">account.batch.payment.inherit</field>-->
+    <!--        <field name="model">account.batch.payment</field>-->
+    <!--        <field name="inherit_id"-->
+    <!--               ref="account_accountant_batch_payment.view_account_batch_payment_list_bank_rec_widget"/>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <xpath expr="//field[@name='amount_residual']" position="after">-->
+    <!--                <field name="ref_bank_no"-->
+    <!--                       string="Bank Reference"-->
+    <!--                       optional="hide"/>-->
+    <!--            </xpath>-->
+    <!--        </field>-->
+    <!--    </record>-->
 
 
     <record id="account.product_product_menu_sellable" model="ir.ui.menu">
         <field name="name">Products/Services</field>
     </record>
 
-<!--    <record id="model_account_batch_payment_action_validate" model="ir.actions.server">-->
-<!--        <field name="name">Validate</field>-->
-<!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="binding_view_types">list</field>-->
-<!--        <field name="state">code</field>-->
-<!--        <field name="code">action = records.batch_validate_action()</field>-->
-<!--    </record>-->
+    <!--    <record id="model_account_batch_payment_action_validate" model="ir.actions.server">-->
+    <!--        <field name="name">Validate</field>-->
+    <!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="binding_view_types">list</field>-->
+    <!--        <field name="state">code</field>-->
+    <!--        <field name="code">action = records.batch_validate_action()</field>-->
+    <!--    </record>-->
 
-<!--    <record id="model_account_batch_payment_management_approve" model="ir.actions.server">-->
-<!--        <field name="name">Management Approval</field>-->
-<!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="binding_view_types">list</field>-->
-<!--        <field name="state">code</field>-->
-<!--        <field name="code">action = records.batch_management_approval()</field>-->
-<!--    </record>-->
+    <!--    <record id="model_account_batch_payment_management_approve" model="ir.actions.server">-->
+    <!--        <field name="name">Management Approval</field>-->
+    <!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="binding_view_types">list</field>-->
+    <!--        <field name="state">code</field>-->
+    <!--        <field name="code">action = records.batch_management_approval()</field>-->
+    <!--    </record>-->
 
-<!--    <record id="update_bank_ref" model="ir.actions.server">-->
-<!--        <field name="name">Update Bank Reference</field>-->
-<!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="groups_id" eval="[(4, ref('csspl_india.group_payments_position_manager'))]"/>-->
-<!--        <field name="binding_view_types">list</field>-->
-<!--        <field name="state">code</field>-->
-<!--        <field name="code">action=records.update_bank_reference()</field>-->
-<!--    </record>-->
+    <!--    <record id="update_bank_ref" model="ir.actions.server">-->
+    <!--        <field name="name">Update Bank Reference</field>-->
+    <!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="groups_id" eval="[(4, ref('csspl_india.group_payments_position_manager'))]"/>-->
+    <!--        <field name="binding_view_types">list</field>-->
+    <!--        <field name="state">code</field>-->
+    <!--        <field name="code">action=records.update_bank_reference()</field>-->
+    <!--    </record>-->
 
-<!--    <record id="model_account_bank_format_merge" model="ir.actions.server">-->
-<!--        <field name="name">Bank Format Merge</field>-->
-<!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
-<!--        <field name="groups_id" eval="[(4, ref('csspl_india.group_payments_position_manager'))]"/>-->
-<!--        <field name="binding_view_types">list</field>-->
-<!--        <field name="state">code</field>-->
-<!--        <field name="code">action=records.generate_excel_merge_report()</field>-->
-<!--    </record>-->
+    <!--    <record id="model_account_bank_format_merge" model="ir.actions.server">-->
+    <!--        <field name="name">Bank Format Merge</field>-->
+    <!--        <field name="model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="binding_model_id" ref="account_batch_payment.model_account_batch_payment"/>-->
+    <!--        <field name="groups_id" eval="[(4, ref('csspl_india.group_payments_position_manager'))]"/>-->
+    <!--        <field name="binding_view_types">list</field>-->
+    <!--        <field name="state">code</field>-->
+    <!--        <field name="code">action=records.generate_excel_merge_report()</field>-->
+    <!--    </record>-->
 
 </odoo>

@@ -228,9 +228,22 @@
             <!--                <attribute name="groups">csspl_project.allow_reset_draft</attribute>-->
             <!--            </xpath>-->
 
-            <xpath expr="//group[@name='group2']" position="after">
+            <xpath expr="//field[@name='journal_id']" position="after">
                 <field name="payment_month_id" required="1"/>
+                <field name="payment_for_id" readonly="state in ('posted', 'cancel')"/>
                 <field name="batch_payment_id" readonly="1"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="button_open_reversal_entry"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-undo"
+                        invisible="not reversal_move_id">
+
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Reversal Entry</span>
+                    </div>
+                </button>
             </xpath>
 
             <xpath expr="//header" position="inside">
@@ -239,7 +252,7 @@
                 <button name="action_return_entry"
                         type="object"
                         class="btn btn-primary"
-                        string="Reverse" invisible="state not in ['in_process','paid']"/>
+                        string="Reverse" invisible="reversal_move_id"/>
 <!--                        invisible="state != 'posted' or payment_state == 'reversed'"/>-->
 
             </xpath>
@@ -259,12 +272,12 @@
             </xpath>
 
             <!--            To hide the Confirm Button when payment is in post state-->
-            <xpath expr="//button[@name='action_post']" position="attributes">
-                <attribute name="invisible">
-                    batch_payment_id != False or state == 'posted'
-                </attribute>
+<!--            <xpath expr="//button[@name='action_post']" position="attributes">-->
+<!--                <attribute name="invisible">-->
+<!--                    batch_payment_id != False or state == 'posted'-->
+<!--                </attribute>-->
 
-            </xpath>
+<!--            </xpath>-->
         </field>
 
     </record>

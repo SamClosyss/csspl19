@@ -1209,7 +1209,7 @@ class InheritAccountingPayment(models.Model):
     bank_acc_related = fields.Char(related='partner_bank_id.acc_number', string='Account Number')
     source_doc = fields.Char('Source Doc')
     today_date = fields.Datetime.now()
-    contigency = fields.Float('Contigency', compute="compute_contigency_value", store=True)
+    # contigency = fields.Float('Contigency', compute="compute_contigency_value", store=True)
 
     @api.onchange('ref')
     def onchange_of_ref(self):
@@ -1218,14 +1218,14 @@ class InheritAccountingPayment(models.Model):
             if rec.ref:
                 rec.payment_reference = rec.ref
 
-    @api.depends('amount', 'move_id', 'move_id.reversal_move_ids', 'move_id.reversal_move_ids.state')
-    def compute_contigency_value(self):
-        for rec in self:
-            filter_reversal = rec.move_id.reversal_move_ids.filtered(lambda x: x.state == 'posted')
-            if rec.move_id and filter_reversal:
-                rec.contigency = rec.amount - sum(filter_reversal.mapped('amount'))
-            else:
-                rec.contigency = rec.amount
+    # @api.depends('amount', 'move_id', 'move_id.reversal_move_ids', 'move_id.reversal_move_ids.state')
+    # def compute_contigency_value(self):
+    #     for rec in self:
+    #         filter_reversal = rec.move_id.reversal_move_ids.filtered(lambda x: x.state == 'posted')
+    #         if rec.move_id and filter_reversal:
+    #             rec.contigency = rec.amount - sum(filter_reversal.mapped('amount'))
+    #         else:
+    #             rec.contigency = rec.amount
 
     # For analytic distribution from payment
     def action_post(self):
