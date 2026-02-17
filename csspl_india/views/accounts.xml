@@ -138,7 +138,7 @@
                 <field name="product_id" optional="show" options="{'no_create': True}" string="Product/Services"
                        domain="context.get('default_move_type') in ('out_invoice', 'out_refund', 'out_receipt') and [('sale_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', parent.company_id)] or [('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]"/>
             </xpath>
-            <xpath expr="//notebook/page[@name='aml_tab']/field[@name='journal_line_ids']/list/field[@name='debit']"
+            <xpath expr="//notebook/page[@name='aml_tab']/field[@name='line_ids']/list/field[@name='debit']"
                    position="before">
                 <field name="value" optional="hide"/>
             </xpath>
