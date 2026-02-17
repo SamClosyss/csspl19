@@ -1584,6 +1584,13 @@ class ResPartnerInherit(models.Model):
     _inherit = "res.partner"
 
     pan_no = fields.Char('PAN No')
+    pan_file_name = fields.Char()
+    pan_card = fields.Binary('PAN Card', attachment=True, copy=False)
+    cancelled_cheque = fields.Binary('Cancelled Cheque', attachment=True, copy=False)
+    check_file_name = fields.Char()
+    gst_doc_name = fields.Char()
+    gst_doc = fields.Binary('GST', attachment=True, copy=False)
+
     vat = fields.Char(string='GSTIN', index=True, tracking=True,
                       help="The Tax Identification Number. Values here will be validated based on the country format. You can use '/' to indicate that the partner is not subject to tax.")
     code = fields.Char('Code')
