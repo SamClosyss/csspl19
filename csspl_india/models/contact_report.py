@@ -24,12 +24,12 @@ class ContactTrailReport(models.TransientModel):
     def _get_chart_account_id(self):
         if self.account_type == 'debtor':
             receivable = self.env['account.account'].search([('account_type', '=', 'asset_receivable'),
-                                                             ('deprecated', '=', False),
+                                                             ('active', '=', False),
                                                              ('company_ids', 'in', self.company_ids.ids)])
             self.chart_account_id = [(6, 0, receivable.ids)]
         elif self.account_type == 'creditor':
             payable = self.env['account.account'].search([('account_type', '=', 'liability_payable'),
-                                                          ('deprecated', '=', False),
+                                                          ('active', '=', False),
                                                           ('company_ids', 'in', self.company_ids.ids)])
             self.chart_account_id = [(6, 0, payable.ids)]
 

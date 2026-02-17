@@ -115,7 +115,7 @@ class AccountPaymentInherit(models.Model):
                     pay.destination_account_id = self.env['account.account'].search([
                         *self.env['account.account']._check_company_domain(pay.company_id),
                         ('account_type', '=', 'asset_receivable'),
-                        ('deprecated', '=', False),
+                        ('active', '=', False),
                     ], limit=1)
             elif pay.partner_type == 'supplier':
                 # Send money to pay a bill or receive money to refund it.
@@ -125,5 +125,5 @@ class AccountPaymentInherit(models.Model):
                     pay.destination_account_id = self.env['account.account'].search([
                         *self.env['account.account']._check_company_domain(pay.company_id),
                         ('account_type', '=', 'liability_payable'),
-                        ('deprecated', '=', False),
+                        ('active', '=', False),
                     ], limit=1)
