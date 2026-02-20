@@ -42,6 +42,12 @@ class AccountMoveInherit(models.Model):
     tds_amount = fields.Float(string="TDS")
     batch_payment_id = fields.Many2one(related='origin_payment_id.batch_payment_id')
 
+    # Force the journal to show in invoice, even if one option exists
+    @api.depends('suitable_journal_ids')
+    def _compute_show_journal(self):
+        for move in self:
+            move.show_journal = len(move.suitable_journal_ids) >= 1
+
     @api.constrains('line_ids', 'invoice_line_ids')
     def _check_non_zero_entries(self):
         for move in self:
